@@ -1,0 +1,152 @@
+# Copyright VMware, Inc.
+# SPDX-License-Identifier: APACHE-2.0
+
+version: '2'
+
+services:
+  spark:
+    build:
+      context: ./spark
+      dockerfile: ./Dockerfile
+    image: xiowang/spark:3.5.0
+    container_name: spark-master
+    # image: docker.io/bitnami/spark:3.5
+    networks:
+      - dev-net
+    hostname: spark-master
+    env_file: .env
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+    ports:
+      - '8080:8080'
+      - '7077:7077'
+  spark-worker-1:
+    build:
+      context: ./spark
+      dockerfile: ./Dockerfile
+    image: xiowang/spark:3.5.0
+    # image: docker.io/bitnami/spark:3.5
+    hostname: spark-worker-1
+    container_name: spark-worker-1
+    networks:
+      - dev-net
+    env_file: .env
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+    ports:
+      - '8081:8081'
+  # spark-worker-2:
+  #   image: docker.io/bitnami/spark:3.5
+  #   hostname: spark-worker-2
+  #   container_name: spark-worker-2
+  #   networks:
+  #     - dev-net
+  #   environment:
+  #     - SPARK_MODE=worker
+  #     - SPARK_MASTER_URL=spark://spark:7077
+  #     - SPARK_WORKER_MEMORY=1G
+  #     - SPARK_WORKER_CORES=1
+  #     - SPARK_RPC_AUTHENTICATION_ENABLED=no
+  #     - SPARK_RPC_ENCRYPTION_ENABLED=no
+  #     - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+  #     - SPARK_SSL_ENABLED=no
+  #     - SPARK_USER=spark
+  #   ports:
+  #     - '8082:8081'
+  minio:
+    image: minio/minio
+    container_name: minio
+    networks:
+      - dev-net
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - /mnt/data:/data
+    env_file: .env
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    command: server /data --console-address ":9001"
+  jupyter-lab:
+    build:
+      context: ./jupyter
+      dockerfile: ./Dockerfile
+    image: xiowang/jupyter:v1.0
+    #image: jupyter/pyspark-notebook
+    hostname: jupyter-lab
+    container_name: jupyter-lab
+    env_file: .env
+    user: root
+    networks:
+      - dev-net
+    volumes:
+      - './jupyter/data:/home/jovyan'
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+    command: "start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''"
+    ports:
+      - '8888:8888'
+      - '4040:4040'
+  dremio:
+    platform: linux/x86_64
+    image: dremio/dremio-oss:latest
+    env_file: .env
+    volumes:
+    - ./dremio/data:/opt/dremio/data
+    networks:
+      - dev-net
+    ports:
+      - 9047:9047
+      - 31010:31010
+      - 32010:32010
+    container_name: dremio
+  pg:
+    image: postgres:16.0
+    networks:
+      - dev-net
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pg/data:/var/lib/postgresql/data
+    environment:
+    - POSTGRES_USER=pgroot
+    - PGUSER=pgroot
+    - POSTGRES_PASSWORD=pgpasswd
+    - POSTGRES_DB=nessie
+    container_name: pg
+
+  nessie:
+    image: projectnessie/nessie
+    container_name: nessie
+    env_file: .env
+    depends_on:
+    - pg
+    environment:
+      - NESSIE_URI=http://nessie:19120/api/v2
+      - NESSIE_VERSION_STORE_TYPE=JDBC
+      - NESSIE_SERVER_AUTHENTICATION_ENABLED=false
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://pg:5432/nessie
+      - QUARKUS.DATASOURCE.USERNAME=pgroot
+      - QUARKUS.DATASOURCE.PASSWORD=pgpasswd
+    networks:
+      - dev-net
+    ports:
+      - "19120:19120"
+networks:
+  dev-net:
+    name: dev-net
+    driver: bridge
