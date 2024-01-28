@@ -102,8 +102,17 @@ mc mb dev/warehouse
 ```bash
 python3 spark-iceberg-minio.py
 ```
-3.TODO(查看结果)
 
+## 5.配置dremio
+1.登录dremio页面：<localhost:9047>，创建nessie的source
+nessie配置：
+![dremio-nessie](./img/dremio-nessie.png)
+s3配置：
+s3配置这里加了三项：
+1. `fs.s3a.path.style.access`: `true`
+2. `fs.s3a.endpoint`: `http://minio:9000`
+3. `dremio.s3.compat`: `true`
+![dremio-s3](./img/dremio-s3.png)
 
 
 # 参考
