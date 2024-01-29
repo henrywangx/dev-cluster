@@ -16,7 +16,7 @@ RUN \
   curl -L https://mirrors.huaweicloud.com/repository/maven/org/apache/spark/spark-sql-kafka-0-10_2.12/3.3.4/spark-sql-kafka-0-10_2.12-3.3.4.jar -o $SPARK_HOME/jars/spark-sql-kafka-0-10_2.12-3.3.4.jar && \
   curl -L https://mirrors.huaweicloud.com/repository/maven/org/apache/kafka/kafka-clients/3.3.4/kafka-clients-3.3.4.jar -o $SPARK_HOME/jars/kafka-clients-3.3.4.jar && \
   curl -L https://mirrors.huaweicloud.com/repository/maven/org/apache/spark/spark-token-provider-kafka-0-10_2.12/3.3.4/spark-token-provider-kafka-0-10_2.12-3.3.4.jar -o $SPARK_HOME/jars/spark-token-provider-kafka-0-10_2.12-3.3.4.jar
-RUN curl -L https://mirrors.huaweicloud.com/repository/maven/org/projectnessie/nessie-integrations/nessie-spark-extensions-3.5_2.13/0.76.6/nessie-spark-extensions-3.5_2.13-0.76.6.jar -o $SPARK_HOME/jars/nessie-spark-extensions-3.5_2.13-0.76.6.jar
+# RUN curl -L https://mirrors.huaweicloud.com/repository/maven/org/projectnessie/nessie-integrations/nessie-spark-extensions-3.5_2.13/0.76.6/nessie-spark-extensions-3.5_2.13-0.76.6.jar -o $SPARK_HOME/jars/nessie-spark-extensions-3.5_2.13-0.76.6.jar
 
 # # Add AWS and Iceberg jars to make them available to Spark applications that use Minio and Iceberg
 # ADD https://mirrors.huaweicloud.com/repository/maven/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/1.4.2/iceberg-spark-runtime-3.5_2.12-1.4.2.jar $SPARK_HOME/jars

@@ -21,7 +21,7 @@ mc config host add dev http://localhost:9000 minio minio123 --api s3v4
 ![创建minio access key](./img/minio-access-key.png)
 
 5.使用minio的access key信息更新`.env`文件
-```
+```bash
 # AWS_REGION is used by Spark
 AWS_REGION=us-east-1
 # This must match if using minio
@@ -104,15 +104,26 @@ python3 spark-iceberg-minio.py
 ```
 
 ## 5.配置dremio
-1.登录dremio页面：<localhost:9047>，创建nessie的source
-nessie配置：
-![dremio-nessie](./img/dremio-nessie.png)
-s3配置：
-s3配置这里加了三项：
+1.登录dremio页面：<localhost:9047>，创建s3的source
+s3 source配置：
+![dremio-s3-general](./img/dremio-s3-general.png)
+s3 advanced配置：
+s3配置这里加了以下配置：
 1. `fs.s3a.path.style.access`: `true`
 2. `fs.s3a.endpoint`: `http://minio:9000`
 3. `dremio.s3.compat`: `true`
-![dremio-s3](./img/dremio-s3.png)
+4. 勾选enable compatibility mode, 因为我们是minio
+
+![dremio-s3-advanced](./img/dremio-s3-advanced.png)
+
+2.format table为iceberg，进入到nyc.taxis_large这个目录，然后点击format table的按钮，保存为iceberg
+![dremio-s3-format](./img/dremio-s3-format.png)
+
+3.format为iceberg后，我们就能发现一个table，选中table，运行sql，发现我们可以用sql来操作iceberg表了，哈哈
+```sql
+SELECT * FROM taxis_large limit 10
+```
+![dremio-s3-sql](./img/dremio-s3-sql.png)
 
 
 # 参考
